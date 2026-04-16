@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <thread>
 #include <chrono>
+#include "system_stats.h"
 
 using namespace ftxui;
 

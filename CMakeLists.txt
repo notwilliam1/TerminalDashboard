@@ -11,7 +11,8 @@ FetchContent_Declare(ftxui
 FetchContent_MakeAvailable(ftxui)
 
 add_executable(TerminalDashboard main.cpp
-        tests/test_cpu.cpp)
+        tests/test_cpu.cpp
+        system_stats.h)
 
 target_link_libraries(TerminalDashboard
     PRIVATE ftxui::screen
@@ -28,5 +29,6 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(tests tests/test_cpu.cpp
-        tests/test_cpu.cpp)
+        tests/test_cpu.cpp
+        system_stats.h)
 target_link_libraries(tests PRIVATE gtest gtest_main)

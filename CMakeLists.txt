@@ -10,15 +10,16 @@ FetchContent_Declare(ftxui
 )
 FetchContent_MakeAvailable(ftxui)
 
-add_executable(TerminalDashboard main.cpp
-        tests/test_cpu.cpp
-        system_stats.h)
-
+add_executable(TerminalDashboard main.cpp)
 target_link_libraries(TerminalDashboard
     PRIVATE ftxui::screen
     PRIVATE ftxui::dom
     PRIVATE ftxui::component
+    PRIVATE system_stats
 )
+
+add_library(system_stats system_stats.cpp)
+target_include_directories(system_stats PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 FetchContent_Declare(googletest
     GIT_REPOSITORY https://github.com/google/googletest

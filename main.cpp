@@ -22,11 +22,11 @@ int main() {
         return vbox({
             text(" SYSTEM MONITOR ") | bold | center | border,
             hbox({
-                window(text(" CPU Usage "), text(std::to_string((int)cpuload) + "%")),
-                window(text(" Memory "), text(" 4.2GB / 16GB ")), //placeholder
+                window(text(" CPU Percentage "), text(std::to_string((int)cpuload) + "%")),
+                window(text(""), gaugeRight(cpuload/100.0f)),
             }),
             window(text(" Log "), text(" All systems nominal... "))
-        });
+        }) | color(Color::GreenLight);
     });
 
     std::thread refresh([&] {

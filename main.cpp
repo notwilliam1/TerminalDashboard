@@ -14,8 +14,9 @@ int main() {
 
     auto screen = ScreenInteractive::TerminalOutput();
 
+    float cpuload = 0.0f;
+
     auto renderer = Renderer([&] {
-        float cpuload = GetCPULoad() * 100.0f;
         return vbox({
             text(" SYSTEM MONITOR ") | bold | center | border,
             hbox({
@@ -29,6 +30,7 @@ int main() {
     std::thread refresh([&] {
         while (true) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            cpuload = GetCPULoad() * 100.0f;
             screen.PostEvent(Event::Custom);
         }
     });

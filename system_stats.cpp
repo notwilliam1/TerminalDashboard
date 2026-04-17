@@ -1,4 +1,6 @@
 #include "system_stats.h"
+#include <windows.h>
+#include <cmath>
 
 static unsigned long long FileTimeToInt64(const FILETIME& ft) {
     return (((unsigned long long)(ft.dwHighDateTime)) << 32) | ((unsigned long long)ft.dwLowDateTime);
@@ -27,5 +29,27 @@ float GetCPULoad() {
         unsigned long long user = FileTimeToInt64(userTime);
         return CalculateCPULoad(idle, kernel + user);
     }
+    return -1.0f;
+}
+
+float GetMemoryUsageGB() {
+    MEMORYSTATUSEX memStatus;
+    memStatus.dwLength = sizeof(memStatus);
+
+    if (GlobalMemoryStatusEx(&memStatus)) {
+        unsigned long long used = memStatus.ullTotalPhys - memStatus.ullAvailPhys;
+        return (float)used / pow(1024, 3);
+    }
+
+    return -1.0f;
+}
+
+float GetTotalMemoryGB() {
+    MEMORYSTATUSEX memStatus;
+    memStatus.dwLength = sizeof(memStatus);
+    if (GlobalMemoryStatusEx(&memStatus)) {
+        return (float)memStatus.ullTotalPhys / pow(1024, 3);
+    }
+
     return -1.0f;
 }

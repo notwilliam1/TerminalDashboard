@@ -23,11 +23,11 @@ int main() {
         return vbox({
             text(" SYSTEM MONITOR ") | bold | center | border,
             hbox({
-                window(text(" CPU Percentage "), text(std::to_string((int)cpuLoad) + "%")),
+                window(text(" CPU Percentage "), text(std::to_string((int)cpuLoad) + "%") | center),
                 window(text(""), gaugeRight(cpuLoad/100.0f)),
             }),
             hbox({
-                window(text(" Memory Usage "), text(std::format("{:.2f} / {:.2f} GB", GetMemoryUsageGB(), GetTotalMemoryGB()))),
+                window(text(" Memory Usage "), text(std::format("{:.2f} / {:.2f} GB", GetMemoryUsageGB(), GetTotalMemoryGB())) | center),
                 window(text(""), gaugeRight(memoryUsage/memoryTotal)),
             }),
             window(text(" Log "), text(" All systems nominal... "))

@@ -20,18 +20,31 @@ int main() {
     float memoryTotal = 0.0f;
 
     auto renderer = Renderer([&] {
+        auto cellStats = vbox({
+            text(" System Stats ") | bold,
+            separator(),
+            hbox({
+            text(" CPU Usage "),
+            text(std::to_string((int)cpuLoad) + "%") | color(Color::GreenLight),
+            }),
+            gaugeRight(cpuLoad / 100.0f) | color(Color::GreenLight),
+            hbox({
+            text(" Memory Usage "),
+            text(std::format("{:.2f}/{:.2f} GB", memoryUsage, memoryTotal)) | color(Color::GreenLight),
+            }),
+            gaugeRight(memoryUsage / memoryTotal) | color(Color::GreenLight),
+        }) | flex;
+
         return vbox({
-            text(" SYSTEM MONITOR ") | bold | center | border,
+            text(" SYSTEM MONITOR ") | bold | center,
+            separator(),
             hbox({
-                window(text(" CPU Percentage "), text(std::to_string((int)cpuLoad) + "%") | center),
-                window(text(""), gaugeRight(cpuLoad/100.0f)),
-            }),
-            hbox({
-                window(text(" Memory Usage "), text(std::format("{:.2f} / {:.2f} GB", GetMemoryUsageGB(), GetTotalMemoryGB())) | center),
-                window(text(""), gaugeRight(memoryUsage/memoryTotal)),
-            }),
-            window(text(" Log "), text(" All systems nominal... "))
-        }) | color(Color::GreenLight);
+            cellStats,
+            separator(),
+            }) | flex,
+            separator(),
+            hbox({}) | flex,
+        }) | border | color(Color::GreenLight);
     });
 
     std::thread refresh([&] {

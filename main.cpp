@@ -23,24 +23,28 @@ int main() {
         auto cellStats = vbox({
             text(" System Stats ") | bold,
             separator(),
-            hbox({
-            text(" CPU Usage "),
-            text(std::to_string((int)cpuLoad) + "%") | color(Color::GreenLight),
-            }),
-            gaugeRight(cpuLoad / 100.0f) | color(Color::GreenLight),
-            hbox({
-            text(" Memory Usage "),
-            text(std::format("{:.2f}/{:.2f} GB", memoryUsage, memoryTotal)) | color(Color::GreenLight),
-            }),
-            gaugeRight(memoryUsage / memoryTotal) | color(Color::GreenLight),
+            hbox({ text(" CPU Usage "), text(std::to_string((int)cpuLoad) + "%") | color(Color::GreenLight),
+            }), gaugeRight(cpuLoad / 100.0f) | color(Color::GreenLight),
+            hbox({ text(" Memory Usage "), text(std::format("{:.2f}/{:.2f} GB", memoryUsage, memoryTotal)) | color(Color::GreenLight),
+            }), gaugeRight(memoryUsage / memoryTotal) | color(Color::GreenLight),}) | flex;
+
+        // currently has placeholders. need to build out functions to grab weather api data and time data (most likely using chrono)
+        auto cellWeather = vbox({
+        text(" Weather & Time" ) | bold,
+        separator(),
+        text(" 🌤  Atlanta 72°F ") | color(Color::Yellow),
+        text(" UTC-5  |  EST 14:32 ") | dim,
+        text(" UTC+0  |  GMT 19:32 ") | dim,
+        text(" UTC+9  |  JST 04:32 ") | dim,
         }) | flex;
 
         return vbox({
             text(" SYSTEM MONITOR ") | bold | center,
             separator(),
             hbox({
-            cellStats,
-            separator(),
+                cellStats,
+                separator(),
+                cellWeather,
             }) | flex,
             separator(),
             hbox({}) | flex,

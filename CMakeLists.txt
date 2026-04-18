@@ -23,19 +23,16 @@ set(HTTP_ONLY ON CACHE BOOL "" FORCE)
 set(CURL_USE_OPENSSL OFF CACHE BOOL "" FORCE)
 set(CURL_USE_SCHANNEL ON CACHE BOOL "" FORCE)
 
-FetchContent_Declare(
-        nlohmann_json
-        URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.hpp
-        DOWNLOAD_NO_EXTRACT TRUE
-        DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/include/nlohmann
+FetchContent_Declare(json
+        URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
 )
 
-FetchContent_MakeAvailable(ftxui curl nlohmann_json googletest)
+FetchContent_MakeAvailable(ftxui curl json googletest)
 
 
 add_library(system_stats system_stats.cpp)
 target_include_directories(system_stats PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_BINARY_DIR}/include)
-target_link_libraries(system_stats PUBLIC libcurl)
+target_link_libraries(system_stats PUBLIC libcurl nlohmann_json::nlohmann_json)
 
 add_executable(TerminalDashboard main.cpp)
 target_link_libraries(TerminalDashboard

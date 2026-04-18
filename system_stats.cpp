@@ -1,6 +1,10 @@
 #include "system_stats.h"
 #include <windows.h>
 #include <cmath>
+#include <curl/curl.h>
+#include <nlohmann/json.hpp>
+#include <format>
+#include <mutex>
 
 static unsigned long long FileTimeToInt64(const FILETIME& ft) {
     return (((unsigned long long)(ft.dwHighDateTime)) << 32) | ((unsigned long long)ft.dwLowDateTime);

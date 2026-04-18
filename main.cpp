@@ -23,6 +23,7 @@ int main() {
     LocationData location;
     WeatherData weather;
 
+    // TODO: fix data race. Join threads properly with a stop flag to prevent threads running after shutdown. std::condition_variable?
     std::thread weatherThread([&] {
         location = FetchLocation();
         while (true) {
@@ -51,6 +52,7 @@ int main() {
     });
     refresh.detach();
 
+    // TODO: precompute memoryUsage / memoryTotal in the refresh thread instead of every frame update
     auto renderer = Renderer([&] {
         auto cellStats = vbox({
             text(" System Stats ") | bold,

@@ -57,3 +57,101 @@ float GetTotalMemoryGB() {
 
     return -1.0f;
 }
+
+std::mutex weatherMutex;
+
+static std::pair<std::string, std::string> DecodeWeatherCode(int code) {
+    if (code == 0)                return {"Clear",         "☀️"};
+    if (code <= 2)                return {"Partly Cloudy", "🌤️"};
+    if (code == 3)                return {"Overcast",      "☁️"};
+    if (code >= 51 && code <= 67) return {"Rainy",         "🌧️"};
+    if (code >= 71 && code <= 77) return {"Snowy",         "🌨️"};
+    if (code >= 80 && code <= 82) return {"Showers",       "🌧️"};
+    if (code >= 95 && code <= 99) return {"Thunderstorm",  "⛈️"};
+    return {"Cloudy", "☁️"};
+}
+
+static size_t WriteCallBack(void* contents, size_t size, size_t nmemb, std::string* out) {
+    out->append(static_cast<char*>(contents), size * nmemb);
+    return size * nmemb;
+};
+
+WeatherData FetchWeather(double lat, double lon) {
+    WeatherData result;
+
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        result.condition = "curl init failed";
+        return result;
+    }
+
+    std::string url = std::format(
+        "https://api.open-meteo.com/v1/forecast"
+        "?latitude={:.3f}&longitude={:.3f}"
+        "&current=temperature_2m,weathercode"
+        "&temperature_unit=fahrenheit",
+        lat, lon
+    );
+
+    std::string response;
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallBack);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
+
+    CURLcode res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+
+    if (res != CURLE_OK) {
+        result.condition = curl_easy_strerror(res);
+        return result;
+    }
+
+    try {
+        auto j = nlohmann::json::parse(response);
+        if (j.contains("current")) {
+            auto& cur = j["current"];
+            if (cur.contains("temperature_2m") && cur.contains("weathercode")) {
+                result.tempF = cur["temperature_2m"].get<double>();
+                auto [cond, icon] = DecodeWeatherCode(cur["weathercode"].get<int>());
+                result.condition  = cond;
+                result.icon       = icon;
+                result.loaded     = true;
+            }
+        }
+    } catch (...) {
+        result.condition = "Parse error";
+    }
+
+    return result;
+}
+
+LocationData FetchLocation() {
+    LocationData result;
+
+    CURL* curl = curl_easy_init();
+    if (!curl) return result;
+
+    std::string response;
+    curl_easy_setopt(curl, CURLOPT_URL, "http://ip-api.com/json/");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallBack);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
+
+    CURLcode res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+
+    if (res != CURLE_OK) return result;  // silently falls back to Atlanta defaults
+
+    try {
+        auto j = nlohmann::json::parse(response);
+        if (j.contains("lat") && j.contains("lon") && j.contains("city")) {
+            result.lat    = j["lat"].get<double>();
+            result.lon    = j["lon"].get<double>();
+            result.city   = j["city"].get<std::string>();
+            result.loaded = true;
+        }
+    } catch (...) {}
+
+    return result;
+}

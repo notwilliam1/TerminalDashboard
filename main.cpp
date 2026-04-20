@@ -17,17 +17,20 @@ int main() {
 
     auto screen = ScreenInteractive::TerminalOutput();
 
+    std::mutex statsMutex;
+    std::atomic<bool> stopFlag = false;
+
     float cpuLoad = 0.0f;
     float memoryUsage = 0.0f;
     float memoryTotal = 0.0f;
     float memoryGaugeBar = 0.0f;
+
     LocationData location;
     WeatherData weather;
 
-    // TODO: fix data race. Join threads properly with a stop flag to prevent threads running after shutdown. std::condition_variable?
     std::thread weatherThread([&] {
         location = FetchLocation();
-        while (true) {
+        while (!stopFlag) {
             auto fetched = FetchWeather(
                 location.loaded ? location.lat : 33.749,
                 location.loaded ? location.lon : -84.388
@@ -37,31 +40,45 @@ int main() {
                 weather = fetched;
             }
             screen.PostEvent(Event::Custom);
-            std::this_thread::sleep_for(std::chrono::minutes(10));
+            for (int i = 0; i < 600 && !stopFlag; i++) {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
         }
     });
-    weatherThread.detach();
 
     std::thread refresh([&] {
-        while (true) {
+        while (!stopFlag) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            cpuLoad = GetCPULoad() * 100.0f;
-            memoryTotal = GetTotalMemoryGB();
-            memoryUsage = GetMemoryUsageGB();
-            memoryGaugeBar = memoryUsage / memoryTotal;
+            float cpu = GetCPULoad() * 100.0f;
+            float memTotal = GetTotalMemoryGB();
+            float memUsage = GetMemoryUsageGB();
+            {
+                std::lock_guard<std::mutex> lock(statsMutex);
+                cpuLoad = cpu;
+                memoryUsage = memUsage;
+                memoryTotal = memTotal;
+                memoryGaugeBar = memUsage / memTotal;
+            }
             screen.PostEvent(Event::Custom);
         }
     });
-    refresh.detach();
 
     auto renderer = Renderer([&] {
+        float cpuSnap, memUsageSnap, memTotalSnap, gaugeSnap;
+        {
+            std::lock_guard<std::mutex> lock(statsMutex);
+            cpuSnap = cpuLoad;
+            memUsageSnap = memoryUsage;
+            memTotalSnap = memoryTotal;
+            gaugeSnap = memoryGaugeBar;
+        }
         auto cellStats = vbox({
             text(" System Stats ") | bold,
             separator(),
-            hbox({ text(" CPU Usage "), text(std::to_string((int)cpuLoad) + "%") | color(Color::GreenLight),
-            }), gaugeRight(cpuLoad / 100.0f) | color(Color::GreenLight),
-            hbox({ text(" Memory Usage "), text(std::format("{:.2f}/{:.2f} GB", memoryUsage, memoryTotal)) | color(Color::GreenLight),
-            }), gaugeRight(memoryGaugeBar) | color(Color::GreenLight),}) | flex;
+            hbox({ text(" CPU Usage "), text(std::to_string((int)cpuSnap) + "%") | color(Color::GreenLight),
+            }), gaugeRight(cpuSnap / 100.0f) | color(Color::GreenLight),
+            hbox({ text(" Memory Usage "), text(std::format("{:.2f}/{:.2f} GB", memUsageSnap, memTotalSnap)) | color(Color::GreenLight),
+            }), gaugeRight(gaugeSnap) | color(Color::GreenLight),}) | flex;
 
         WeatherData snapshot;
         {
@@ -95,6 +112,9 @@ int main() {
     });
 
     screen.Loop(renderer);
+    stopFlag = true;
+    weatherThread.join();
+    refresh.join();
 
     curl_global_cleanup();
     return 0;

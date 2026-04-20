@@ -20,6 +20,7 @@ int main() {
     float cpuLoad = 0.0f;
     float memoryUsage = 0.0f;
     float memoryTotal = 0.0f;
+    float memoryGaugeBar = 0.0f;
     LocationData location;
     WeatherData weather;
 
@@ -47,12 +48,12 @@ int main() {
             cpuLoad = GetCPULoad() * 100.0f;
             memoryTotal = GetTotalMemoryGB();
             memoryUsage = GetMemoryUsageGB();
+            memoryGaugeBar = memoryUsage / memoryTotal;
             screen.PostEvent(Event::Custom);
         }
     });
     refresh.detach();
 
-    // TODO: precompute memoryUsage / memoryTotal in the refresh thread instead of every frame update
     auto renderer = Renderer([&] {
         auto cellStats = vbox({
             text(" System Stats ") | bold,
@@ -60,7 +61,7 @@ int main() {
             hbox({ text(" CPU Usage "), text(std::to_string((int)cpuLoad) + "%") | color(Color::GreenLight),
             }), gaugeRight(cpuLoad / 100.0f) | color(Color::GreenLight),
             hbox({ text(" Memory Usage "), text(std::format("{:.2f}/{:.2f} GB", memoryUsage, memoryTotal)) | color(Color::GreenLight),
-            }), gaugeRight(memoryUsage / memoryTotal) | color(Color::GreenLight),}) | flex;
+            }), gaugeRight(memoryGaugeBar) | color(Color::GreenLight),}) | flex;
 
         WeatherData snapshot;
         {

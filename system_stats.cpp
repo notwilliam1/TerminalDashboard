@@ -24,7 +24,6 @@ static float CalculateCPULoad(unsigned long long idleTicks, unsigned long long t
     return ret;
 }
 
-//call every 500ms ish and * by 100.0 for percentage. If cpu load is jumping up to numbers much higher than the actual cpu load, then increase time between refreshes.
 float GetCPULoad() {
     FILETIME idleTime, kernelTime, userTime;
     if (GetSystemTimes(&idleTime, &kernelTime, &userTime)) {

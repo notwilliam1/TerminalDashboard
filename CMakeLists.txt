@@ -27,6 +27,9 @@ FetchContent_Declare(json
         URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
 )
 
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(ftxui curl json googletest)
 
 
@@ -46,6 +49,7 @@ enable_testing()
 
 add_executable(tests tests/test_cpu.cpp
         tests/test_mem.cpp
+        tests/test_weather.cpp
 )
 target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(tests
@@ -53,3 +57,5 @@ target_link_libraries(tests
     PRIVATE gtest_main
     PRIVATE system_stats
 )
+include(GoogleTest)
+gtest_discover_tests(tests)

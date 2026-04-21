@@ -104,7 +104,7 @@ int main() {
         }) | flex;
 
         return vbox({
-            text(" SYSTEM MONITOR ") | bold | center,
+            text(" SYSTEM MONITOR ") | bold | center | color(Color::Cyan),
             separator(),
             hbox({
                 cellStats,
@@ -113,7 +113,7 @@ int main() {
             }) | flex,
             separator(),
             hbox({}) | flex,
-        }) | border | color(Color::GreenLight);
+        }) | border | color(Color::White);
     });
 
     screen.Loop(renderer);

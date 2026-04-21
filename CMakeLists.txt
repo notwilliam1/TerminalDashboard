@@ -33,7 +33,8 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(ftxui curl json googletest)
 
 
-add_library(system_stats system_stats.cpp)
+add_library(system_stats system_stats.cpp
+        time_utils.cpp)
 target_include_directories(system_stats PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_BINARY_DIR}/include)
 target_link_libraries(system_stats PUBLIC libcurl nlohmann_json::nlohmann_json)
 

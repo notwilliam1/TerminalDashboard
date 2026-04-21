@@ -25,3 +25,9 @@ extern std::mutex weatherMutex;
 
 WeatherData FetchWeather(double lat = 33.749, double lon = -84.388);
 LocationData FetchLocation();
+
+struct TimeSnaphsot {
+    std::string est, pst, gmt, eet, utc8;
+};
+
+TimeSnaphsot GetCurrentTimes();

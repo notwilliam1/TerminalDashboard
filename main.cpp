@@ -64,7 +64,11 @@ int main() {
     });
 
     auto renderer = Renderer([&] {
+
+        auto times = GetCurrentTimes();
+
         float cpuSnap, memUsageSnap, memTotalSnap, gaugeSnap;
+
         {
             std::lock_guard<std::mutex> lock(statsMutex);
             cpuSnap = cpuLoad;
@@ -72,6 +76,7 @@ int main() {
             memTotalSnap = memoryTotal;
             gaugeSnap = memoryGaugeBar;
         }
+
         auto cellStats = vbox({
             text(" System Stats ") | bold,
             separator(),
@@ -93,9 +98,9 @@ int main() {
             snapshot.loaded
                 ? text(" " + snapshot.icon + " " + location.city + " " + std::to_string((int)snapshot.tempF) + "°F  " + snapshot.condition) | color(Color::Yellow)
                 : text(" Fetching weather...") | dim,
-            text(" UTC-5  |  EST 14:32 ") | dim,
-            text(" UTC+0  |  GMT 19:32 ") | dim,
-            text(" UTC+9  |  JST 04:32 ") | dim,
+            text(std::format(" New York {} | California {} ", times.est, times.pst)) | dim,
+            text(std::format (" United Kingdom {} | Greece {} ", times.gmt, times.eet)) | dim,
+            text(std::format(" Beijing {} ", times.utc8)) | dim,
         }) | flex;
 
         return vbox({

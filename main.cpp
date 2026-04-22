@@ -78,12 +78,12 @@ int main() {
         }
 
         auto cellStats = vbox({
-            text(" System Stats ") | bold,
+            text(" System Stats ") | color(Color::White) | bold,
             separator(),
-            hbox({ text(" CPU Usage "), text(std::to_string((int)cpuSnap) + "%") | color(Color::GreenLight),
-            }), gaugeRight(cpuSnap / 100.0f) | color(Color::GreenLight),
-            hbox({ text(" Memory Usage "), text(std::format("{:.2f}/{:.2f} GB", memUsageSnap, memTotalSnap)) | color(Color::GreenLight),
-            }), gaugeRight(gaugeSnap) | color(Color::GreenLight),}) | flex;
+            hbox({ text(" CPU Usage: ") | color(Color::White) | dim, text(std::to_string((int)cpuSnap) + "%") | color(Color::White),}),
+                    gaugeRight(cpuSnap / 100.0f) | color(Color::Green3Bis),
+            hbox({ text(" Memory Usage: ") | color(Color::White) | dim, text(std::format("{:.2f}/{:.2f} GB", memUsageSnap, memTotalSnap)) | color(Color::White),}),
+                    gaugeRight(gaugeSnap) | color(Color::Green3Bis),}) | flex;
 
         WeatherData snapshot;
         {
@@ -91,20 +91,21 @@ int main() {
             snapshot = weather;
         }
 
-        // Time is still placeholder. Use chrono in future to calc times
         auto cellWeather = vbox({
-            text(" Weather & Time") | bold,
+            text(" Weather & Time ") | bold,
             separator(),
             snapshot.loaded
-                ? text(" " + snapshot.icon + " " + location.city + " " + std::to_string((int)snapshot.tempF) + "°F  " + snapshot.condition) | color(Color::Yellow)
-                : text(" Fetching weather...") | dim,
-            text(std::format(" New York {} | California {} ", times.est, times.pst)) | dim,
-            text(std::format (" United Kingdom {} | Greece {} ", times.gmt, times.eet)) | dim,
-            text(std::format(" Beijing {} ", times.utc8)) | dim,
+                ? text(" " + snapshot.icon + " " + location.city + " " + std::to_string((int)snapshot.tempF) + "°F  " + snapshot.condition) | color(Color::Yellow) | bold
+                : text(" Fetching weather... ") | dim,
+            hbox({ text(" New York ") | color(Color::White) | dim, text(times.est) | color(Color::White) | bold,
+                    text(" | California ") | color(Color::White) | dim, text(times.pst) | color(Color::White) | bold }),
+            hbox({ text(" United Kingdom ") | color(Color::White) | dim, text(times.gmt) | color(Color::White) | bold,
+                    text(" | Greece ") | color(Color::White) | dim, text(times.eet) | color(Color::White) | bold }),
+            hbox({ text(" Beijing ") | color(Color::White) | dim, text(times.utc8) | color(Color::White) | bold }),
         }) | flex;
 
         return vbox({
-            text(" SYSTEM MONITOR ") | bold | center | color(Color::Cyan),
+            text(" SYSTEM MONITOR ") | bold | center | color(Color::White),
             separator(),
             hbox({
                 cellStats,

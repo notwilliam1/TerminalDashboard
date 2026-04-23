@@ -69,6 +69,7 @@ The application runs two background threads alongside the main render loop:
 - Currently only supports the C: drive for disk usage
 - Only supports Windows 10 and 11. Does not support Linux or macOS
 - When scaling the size of the terminal, the ui can temporarily distort
+- Lacks many proper tests
 
 ## Future Improvements
 - Add support for Linux and macOS

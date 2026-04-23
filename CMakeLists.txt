@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 4.2)
 project(TerminalDashboard)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 include(FetchContent)
 FetchContent_Declare(ftxui

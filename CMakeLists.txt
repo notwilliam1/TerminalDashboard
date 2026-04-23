@@ -60,4 +60,4 @@ target_link_libraries(tests
     PRIVATE system_stats
 )
 include(GoogleTest)
-gtest_discover_tests(tests)
+gtest_discover_tests(tests DISCOVERY_MODE PRE_TEST)

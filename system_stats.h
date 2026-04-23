@@ -31,3 +31,9 @@ struct TimeSnaphsot {
 };
 
 TimeSnaphsot GetCurrentTimes();
+
+float GetDiskUsageGB(const std::string& path = "C:\\");
+float GetTotalDiskGB(const std::string& path = "C:\\");
+int GetProcessCount();
+
+std::string GetOSVersion();

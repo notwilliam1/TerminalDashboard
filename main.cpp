@@ -24,6 +24,7 @@ int main() {
     float memoryUsage = 0.0f;
     float memoryTotal = 0.0f;
     float memoryGaugeBar = 0.0f;
+    std::string OSversion = GetOSVersion();
 
     LocationData location;
     WeatherData weather;
@@ -64,58 +65,56 @@ int main() {
     });
 
     auto renderer = Renderer([&] {
+    auto times = GetCurrentTimes();
+    float cpuSnap, memUsageSnap, memTotalSnap, gaugeSnap;
+    {
+        std::lock_guard<std::mutex> lock(statsMutex);
+        cpuSnap = cpuLoad;
+        memUsageSnap = memoryUsage;
+        memTotalSnap = memoryTotal;
+        gaugeSnap = memoryGaugeBar;
+    }
 
-        auto times = GetCurrentTimes();
+    auto cellStats = vbox({
+        text(" RESOURCE USAGE ") | bold,
+        separator(),
+        hbox({ text(" CPU  ") | dim | bold, gaugeRight(cpuSnap / 100.0f) | color(Color::GrayDark), text(" " + std::format("{:3d}%", (int)cpuSnap)) }),
+        hbox({ text(" RAM  ") | dim | bold, gaugeRight(gaugeSnap) | color(Color::GrayLight), text(" " + std::format("{:.1f} GB", memUsageSnap)) }),
+    }) | flex | border;
 
-        float cpuSnap, memUsageSnap, memTotalSnap, gaugeSnap;
+    WeatherData snap;
+    { std::lock_guard<std::mutex> lock(weatherMutex); snap = weather; }
 
-        {
-            std::lock_guard<std::mutex> lock(statsMutex);
-            cpuSnap = cpuLoad;
-            memUsageSnap = memoryUsage;
-            memTotalSnap = memoryTotal;
-            gaugeSnap = memoryGaugeBar;
-        }
+    auto cellWeather = vbox({
+        text(" ENVIRONMENT ") | bold,
+        separator(),
+        snap.loaded ? text(" " + snap.icon + " " + location.city + " " + std::to_string((int)snap.tempF) + "°F") : text(" Syncing..."),
+        hbox({ text(" NY ") | dim, text(times.est), text(" CA ") | dim, text(times.pst) }),
+        hbox({ text(" LDN ") | dim, text(times.gmt), text(" BJ ") | dim, text(times.utc8) }),
+    }) | flex | border;
 
-        auto cellStats = vbox({
-            text(" System Stats ") | color(Color::White) | bold,
-            separator(),
-            hbox({ text(" CPU Usage: ") | color(Color::White) | dim, text(std::to_string((int)cpuSnap) + "%") | color(Color::White),}),
-                    gaugeRight(cpuSnap / 100.0f) | color(Color::Green3Bis),
-            hbox({ text(" Memory Usage: ") | color(Color::White) | dim, text(std::format("{:.2f}/{:.2f} GB", memUsageSnap, memTotalSnap)) | color(Color::White),}),
-                    gaugeRight(gaugeSnap) | color(Color::Green3Bis),}) | flex;
+    float diskUsed = GetDiskUsageGB();
+    float diskTotal = GetTotalDiskGB();
+    auto cellStorage = vbox({
+        text(" STORAGE (C:) ") | bold ,
+        separator(),
+        hbox({ text(" Used ") | dim | bold, text(std::format("{:.1f} / {:.1f} GB", diskUsed, diskTotal)) }),
+        gaugeRight(diskUsed / diskTotal) | color(Color::GrayLight),
+    }) | flex | border;
 
-        WeatherData snapshot;
-        {
-            std::lock_guard<std::mutex> lock(weatherMutex);
-            snapshot = weather;
-        }
+    auto cellSystem = vbox({
+        text(" SYSTEM ") | bold,
+        separator(),
+        text(" Processes: " + std::to_string(GetProcessCount())) | color(Color::White),
+        text(" OS: " + OSversion) | dim,
+    }) | flex | border;
 
-        auto cellWeather = vbox({
-            text(" Weather & Time ") | bold,
-            separator(),
-            snapshot.loaded
-                ? text(" " + snapshot.icon + " " + location.city + " " + std::to_string((int)snapshot.tempF) + "°F  " + snapshot.condition) | color(Color::Yellow) | bold
-                : text(" Fetching weather... ") | dim,
-            hbox({ text(" New York ") | color(Color::White) | dim, text(times.est) | color(Color::White) | bold,
-                    text(" | California ") | color(Color::White) | dim, text(times.pst) | color(Color::White) | bold }),
-            hbox({ text(" United Kingdom ") | color(Color::White) | dim, text(times.gmt) | color(Color::White) | bold,
-                    text(" | Greece ") | color(Color::White) | dim, text(times.eet) | color(Color::White) | bold }),
-            hbox({ text(" Beijing ") | color(Color::White) | dim, text(times.utc8) | color(Color::White) | bold }),
-        }) | flex;
-
-        return vbox({
-            text(" SYSTEM MONITOR ") | bold | center | color(Color::White),
-            separator(),
-            hbox({
-                cellStats,
-                separator(),
-                cellWeather,
-            }) | flex,
-            separator(),
-            hbox({}) | flex,
-        }) | border | color(Color::White);
+    return vbox({
+        text(" ▼ TERMINAL DASHBOARD v1.0 ") | center | bold | color(Color::Black) | bgcolor(Color::White),
+        hbox({ cellStats, cellWeather }),
+        hbox({ cellStorage, cellSystem }),
     });
+});
 
     screen.Loop(renderer);
     stopFlag = true;

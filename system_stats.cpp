@@ -5,6 +5,8 @@
 #include <nlohmann/json.hpp>
 #include <format>
 #include <mutex>
+#include <cmath>
+#include <psapi.h>
 
 static unsigned long long FileTimeToInt64(const FILETIME& ft) {
     return (((unsigned long long)(ft.dwHighDateTime)) << 32) | ((unsigned long long)ft.dwLowDateTime);
@@ -154,3 +156,43 @@ LocationData FetchLocation() {
 
     return result;
 }
+
+float GetDiskUsageGB(const std::string& path) {
+    ULARGE_INTEGER free, total, totalFree;
+    if (GetDiskFreeSpaceExA(path.c_str(), &free, &total, &totalFree)) {
+        return (float)(total.QuadPart - free.QuadPart) / pow(1024, 3);
+    }
+    return -1.0f;
+}
+
+float GetTotalDiskGB(const std::string& path) {
+    ULARGE_INTEGER free, total, totalFree;
+    if (GetDiskFreeSpaceExA(path.c_str(), &free, &total, &totalFree)) {
+        return (float)total.QuadPart / pow(1024, 3);
+    }
+    return -1.0f;
+}
+
+int GetProcessCount() {
+    DWORD processes[1024], cbNeeded;
+    if (EnumProcesses(processes, sizeof(processes), &cbNeeded)) {
+        return cbNeeded / sizeof(DWORD);
+    }
+    return 0;
+}
+
+std::string GetOSVersion() {
+    OSVERSIONINFOEXW osvi = {};
+    osvi.dwOSVersionInfoSize = sizeof(osvi);
+
+    auto RtlGetVersion = (LONG(WINAPI*)(PRTL_OSVERSIONINFOW))
+        GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetVersion");
+
+    if (RtlGetVersion && RtlGetVersion((PRTL_OSVERSIONINFOW)&osvi) == 0) {
+        DWORD build = osvi.dwBuildNumber;
+        std::string name = (build >= 22000) ? "Windows 11" : "Windows 10";
+        return std::format("{} (Build {})", name, build);
+    }
+    return "Windows (unknown)";
+}
+

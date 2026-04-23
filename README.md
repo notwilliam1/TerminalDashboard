@@ -6,7 +6,7 @@ A terminal dashboard built in C++23 that displays live system metrics, weather, 
 
 ---
 
-![Terminal Dashboard Screenshot](<img width="1474" height="704" alt="Screenshot 2026-04-23 033005" src="https://github.com/user-attachments/assets/bd34a581-a4e1-4552-b304-53581d9c665e" />)
+![Terminal Dashboard Screenshot](<img width="1474" height="704" alt="Terminal Dashboard Screenshot" src="https://github.com/user-attachments/assets/bd34a581-a4e1-4552-b304-53581d9c665e" />)
 
 ---
 

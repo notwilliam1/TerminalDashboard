@@ -29,7 +29,7 @@ FetchContent_Declare(json
 )
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(ftxui curl json googletest)
 
